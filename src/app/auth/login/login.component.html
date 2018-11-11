@@ -1,0 +1,30 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-6 offset-md-3 col-xs-12">
+      <h4 class="text-xs-center mb-4">Login</h4>
+      <app-list-errors [errors]="errors"></app-list-errors>
+      <form>
+        <fieldset>
+          <fieldset class="form-group">
+            <input
+              formControlName="email"
+              placeholder="Email"
+              class="form-control"
+              type="text"/>
+          </fieldset>
+          <fieldset class="form-group">
+            <input
+              formControlName="password"
+              placeholder="Senha"
+              class="form-control"
+              type="password"/>
+          </fieldset>
+          <button class="btn btn-success pull-xs-right" type="submit">
+            Entrar
+          </button>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+
+</div>

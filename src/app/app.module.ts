@@ -9,6 +9,7 @@ import {SharedModule} from './shared/shared.module';
 import {HomeModule} from './home/home.module';
 
 import {HeaderComponent} from './shared/layout/header/header.component';
+import { AuthModule } from './auth/auth.module';
 
 @NgModule({
   declarations: [
@@ -17,11 +18,12 @@ import {HeaderComponent} from './shared/layout/header/header.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule,
     BrowserAnimationsModule,
     CoreModule,
     SharedModule,
-    HomeModule
+    HomeModule,
+    AuthModule,
+    AppRoutingModule
   ],
   providers: [],
   bootstrap: [AppComponent]
