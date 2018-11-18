@@ -1,24 +1,30 @@
 import {Injectable} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot} from '@angular/router';
-import {Observable} from 'rxjs';
+import {CanActivate, CanLoad, Router} from '@angular/router';
 
 import {UserService} from './user.service';
-import {take} from 'rxjs/operators';
+import {JwtService} from './jwt.service';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  constructor(
-    private router: Router,
-    private userService: UserService
-  ) {
+export class AuthGuard implements CanActivate, CanLoad {
+
+  constructor(private router: Router, private userService: UserService, private jwtService: JwtService) {
   }
 
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): Observable<boolean> {
+  canLoad(): boolean {
+    return this.isAuthenticated();
+  }
 
-    return this.userService.isAuthenticated.pipe(take(1));
+  canActivate(): boolean {
+    return this.isAuthenticated();
+  }
 
+  private isAuthenticated() {
+    if (this.jwtService.getToken()) {
+      return true;
+    } else {
+      this.userService.purgeAuth();
+      this.router.navigateByUrl('/login');
+      return false;
+    }
   }
 }

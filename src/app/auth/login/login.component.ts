@@ -1,7 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
-import {User} from '../../core/models/user.model';
 import {UserService} from '../../core/services/user.service';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {Errors} from '../../core/models/errors.model';
 
 @Component({
   selector: 'app-login',
@@ -9,19 +10,34 @@ import {UserService} from '../../core/services/user.service';
 })
 export class LoginComponent implements OnInit {
 
-  constructor(private router: Router, private userService: UserService) {
+  form: FormGroup;
+  isSubmitting = false;
+  errors: Errors = {errors: {}};
+
+  constructor(private router: Router, private userService: UserService, private fb: FormBuilder) {
+    this.form = this.fb.group({
+      'username': ['', [Validators.required, Validators.email]],
+      'password': ['', Validators.required]
+    });
   }
 
   ngOnInit() {
   }
 
-  onSubmit() {
-    const user: User = <User>{
-      email: 'neanhder89@gmail.com',
-      token: '123456',
-      username: 'neandher.carlos',
-    };
-    this.userService.setAuth(user);
-    this.router.navigateByUrl('/dashboard');
+  submitForm() {
+    this.isSubmitting = true;
+    this.errors = {errors: {}};
+
+    const credentials = this.form.value;
+
+    this.userService
+      .attemptAuth('login', credentials)
+      .subscribe(
+        data => this.router.navigateByUrl('/dashboard'),
+        err => {
+          this.errors = {errors: {['']: err.message}};
+          this.isSubmitting = false;
+        }
+      );
   }
 }

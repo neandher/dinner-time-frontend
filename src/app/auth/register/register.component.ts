@@ -1,7 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {UserService} from '../../core/services/user.service';
-import {User} from '../../core/models/user.model';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {Errors} from '../../core/models/errors.model';
 
 @Component({
   selector: 'app-register',
@@ -9,19 +10,41 @@ import {User} from '../../core/models/user.model';
 })
 export class RegisterComponent implements OnInit {
 
-  constructor(private router: Router, private userService: UserService) {
+  form: FormGroup;
+  isSubmitting = false;
+  errors: Errors = {errors: {}};
+
+  constructor(private router: Router, private userService: UserService, private fb: FormBuilder) {
+    this.form = this.fb.group({
+      'nome': ['', [Validators.required]],
+      'email': ['', [Validators.required, Validators.email]],
+      'password': ['', [Validators.required]],
+      'estabelecimento': this.fb.group({
+        'nome': ['', [Validators.required]],
+        'endereco': ['', [Validators.required]],
+        'telefone': ['', [Validators.required]],
+      })
+    });
   }
 
   ngOnInit() {
   }
 
-  onSubmit() {
-    const user: User = <User>{
-      email: 'neanhder89@gmail.com',
-      token: '123456',
-      username: 'neandher.carlos',
-    };
-    this.userService.setAuth(user);
-    this.router.navigateByUrl('/dashboard');
+  submitForm() {
+    this.isSubmitting = true;
+    this.errors = {errors: {}};
+
+    const userRegister = this.form.value;
+
+    this.userService
+      .register(userRegister)
+      .subscribe(
+        data => this.router.navigateByUrl('/login'),
+        err => {
+          this.errors = {errors: {['']: err.message}};
+          this.isSubmitting = false;
+        }
+      );
   }
+
 }

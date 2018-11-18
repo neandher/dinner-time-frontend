@@ -1,10 +1,11 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, ReplaySubject} from 'rxjs';
 import {User} from '../models/user.model';
-import {distinctUntilChanged, map} from 'rxjs/operators';
+import {distinctUntilChanged, flatMap, map} from 'rxjs/operators';
 import {ApiService} from './api.service';
 import {HttpClient} from '@angular/common/http';
 import {JwtService} from './jwt.service';
+import {default as decode} from 'jwt-decode';
 
 @Injectable()
 export class UserService {
@@ -26,10 +27,12 @@ export class UserService {
   // This runs once on application startup.
   populate() {
     // If JWT detected, attempt to get & store user's info
-    if (this.jwtService.getToken()) {
-      this.apiService.get('/user')
+    const token = this.jwtService.getToken();
+    if (token) {
+      const user = decode(token);
+      this.apiService.get('/usuarios/' + user.id)
         .subscribe(
-          data => this.setAuth(data.user),
+          data => this.setAuth(token),
           err => this.purgeAuth()
         );
     } else {
@@ -38,11 +41,11 @@ export class UserService {
     }
   }
 
-  setAuth(user: User) {
+  setAuth(token: String) {
     // Save JWT sent from server in localstorage
-    this.jwtService.saveToken(user.token);
+    this.jwtService.saveToken(token);
     // Set current user data into observable
-    this.currentUserSubject.next(user);
+    this.currentUserSubject.next(decode(token));
     // Set isAuthenticated to true
     this.isAuthenticatedSubject.next(true);
   }
@@ -57,11 +60,11 @@ export class UserService {
   }
 
   attemptAuth(type, credentials): Observable<User> {
-    const route = (type === 'login') ? '/login' : '';
-    return this.apiService.post('/users' + route, {user: credentials})
+    const route = (type === 'login') ? '/login_check' : '/usuarios';
+    return this.apiService.post(route, credentials)
       .pipe(map(
         data => {
-          this.setAuth(data.user);
+          this.setAuth(data.token);
           return data;
         }
       ));
@@ -79,6 +82,14 @@ export class UserService {
         // Update the currentUser observable
         this.currentUserSubject.next(data.user);
         return data.user;
+      }));
+  }
+
+  register(user): Observable<User> {
+    return this.apiService
+      .post('/register', user)
+      .pipe(map(data => {
+        return data;
       }));
   }
 
